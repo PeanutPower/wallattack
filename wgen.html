@@ -1,0 +1,146 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+	<head>
+		<title>WallAttack - wall builder</title>
+		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+		<script src="/socket.io/socket.io.js"></script>
+	
+		<script>
+			(function($){
+
+			$.fn.disableSelection = function() {
+				return this.each(function() {           
+					$(this).attr('unselectable', 'on')
+						   .css({
+						       '-moz-user-select':'none',
+						       '-webkit-user-select':'none',
+						       'user-select':'none'
+						   })
+						   .each(function() {
+						       this.onselectstart = function() { return false; };
+						   });
+				});
+			};
+
+			})(jQuery);
+
+			$(document).ready(function()
+			{
+				var amDrawing = false;
+				
+				$("body").disableSelection();
+				$("body").mousedown( function(){ amDrawing = true; } );
+				$("body").mouseup( function(){ amDrawing = false; } );
+				
+				$(".item").live("mouseover", function(){
+					if( amDrawing == false ) return;
+					
+					if( $(this).data("checked")=="0" ){ $(this).data("checked", "1"); $(this).css("background-color", "#ccc"); }
+					else { $(this).data("checked", "0"); $(this).css("background-color", "#fff"); }					
+				});
+				
+				$(".item").live("click", function(){
+					if( $(this).data("checked")=="0" ){ $(this).data("checked", "1"); $(this).css("background-color", "#ccc"); }
+					else { $(this).data("checked", "0"); $(this).css("background-color", "#fff"); }
+				});
+
+				$("#reverse").click(function()
+				{
+					var arr = $("#txt").val();
+					arr = eval(arr);
+					
+					var i=0;
+					$(".line").each(function()
+					{
+						for( var j=0; j<28; j++ ) 
+						{
+							if( arr[j][i]==1 )
+								$('.item[i="'+j+'"][j="'+i+'"]').click();
+							//console.log( $('.item[i="'+i+'"][j="'+j+'"]').data("checked") );
+							
+							//$(this).append('<div class="item" i="'+i+'" j="'+j+'">&nbsp;</div>');
+							//$(".item:last").data("checked", "0");
+						}
+					
+						i++;
+					});
+					//for( var i in arr )
+					//	for( var j in arr[i] )
+				});
+				
+				$("#generate").click(function()
+				{
+					var output = "[";
+					var i,j;
+					var arr = new Array();
+					
+					for( var i=0; i<28; i++ )
+						arr[i] = new Array();
+						
+					$(".item").each(function()
+					{
+						i = $(this).attr("i");
+						j = $(this).attr("j");
+						arr[i][j] = $(this).data("checked");
+					});
+					
+					for( var i in arr ) 
+					{
+						output += "[";
+
+						for( var j in arr[i] )
+							output += arr[i][j]+",";
+
+						output = output.substring(0, output.length-1);
+						output += "],";
+					}
+					
+					output = output.substring(0, output.length-1);
+					output += "]";
+					$("#txt").val( output );
+					$("#form").submit();
+				});
+
+				for( var i=0; i<28; i++ )
+					$("body").prepend('<div class="line"></div>');
+
+				var i=0;					
+				$(".line").each(function()
+				{
+					for( var j=0; j<28; j++ ) {
+						$(this).append('<div class="item" i="'+i+'" j="'+j+'">&nbsp;</div>');
+						$(".item:last").data("checked", "0");
+					}
+					
+					i++;
+				});
+			});
+		</script>
+		
+		<style>
+			.item { border:1px solid #ccc; width:15px; height:15px; float:left; }
+			.line { clear:both; }
+		</style>
+		
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-16010439-8']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+	</head>
+	
+	<body>
+		<br><br>
+		<a href="#" id="generate">Generate and Submit</a> / <a href="#" id="reverse">reverse</a><br>
+		<form id="form" action="http://ecdeveloper.com/wa.getwall.php" method="POST"> <textarea rows=0 cols=0 id="txt" name="wall"></textarea> </form>
+	</body>
+	
+</html>
